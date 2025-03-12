@@ -9,7 +9,12 @@ class ImmutableOpenAddressingSet:
 
     EMPTY = object()
 
-    def __init__(self, initial_capacity=8, growth_factor=2, buckets=None, size=0):
+    def __init__(
+            self,
+            initial_capacity=8,
+            growth_factor=2,
+            buckets=None,
+            size=0):
         """
         Initializes an immutable hash set.
 
@@ -35,7 +40,11 @@ class ImmutableOpenAddressingSet:
         without affecting the original instance.
         """
         new_buckets = self.buckets.copy()
-        return ImmutableOpenAddressingSet(self.capacity, self.growth_factor, buckets=new_buckets, size=self.size)
+        return ImmutableOpenAddressingSet(
+            self.capacity,
+            self.growth_factor,
+            buckets=new_buckets,
+            size=self.size)
 
     def _hash(self, key):
         """
@@ -98,7 +107,11 @@ class ImmutableOpenAddressingSet:
                     index = (index + 1) % new_capacity
                 new_buckets[index] = key
         new_size = sum(1 for key in new_buckets if key is not self.EMPTY)
-        return ImmutableOpenAddressingSet(new_capacity, self.growth_factor, buckets=new_buckets, size=new_size)
+        return ImmutableOpenAddressingSet(
+            new_capacity,
+            self.growth_factor,
+            buckets=new_buckets,
+            size=new_size)
 
     def filter(self, predicate):
         """
@@ -185,5 +198,3 @@ class ImmutableOpenAddressingSet:
             if key is not self.EMPTY:
                 new_set = new_set.add(key)
         return new_set
-
-
