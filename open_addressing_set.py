@@ -9,14 +9,18 @@ class ImmutableOpenAddressingSet:
 
     EMPTY = object()
 
-    def __init__(self, initial_capacity=8, growth_factor=2, buckets=None, size=0):
+    def __init__(self, initial_capacity=8, growth_factor=2,
+                 buckets=None, size=0):
         """
         Initializes an immutable hash set.
 
         Parameters:
-          - initial_capacity: Initial capacity of the hash table (must be a power of 2)
-          - growth_factor: The factor by which the table expands when the load factor is too high
-          - buckets: Internal bucket list (internal parameter, not recommended for direct use)
+          - initial_capacity: Initial capacity of the hash table
+          (must be a power of 2)
+          - growth_factor: The factor by which the table expands
+          when the load factor is too high
+          - buckets: Internal bucket list (internal parameter, n
+          ot recommended for direct use)
           - size: Current number of elements in the set (internal parameter)
         """
         if buckets is None:
@@ -31,12 +35,14 @@ class ImmutableOpenAddressingSet:
 
     def _clone(self):
         """
-        Internal method: Creates a shallow copy of the current instance, used for modifications
+        Internal method: Creates a shallow copy
+        of the current instance, used for modifications
         without affecting the original instance.
         """
         new_buckets = self.buckets.copy()
         return ImmutableOpenAddressingSet(
-            self.capacity, self.growth_factor, buckets=new_buckets, size=self.size
+            self.capacity, self.growth_factor,
+            buckets=new_buckets, size=self.size
         )
 
     def _hash(self, key):
@@ -47,10 +53,12 @@ class ImmutableOpenAddressingSet:
 
     def _probe(self, key):
         """
-        Linear probing: Finds the position of the key in the bucket or the first empty slot.
+        Linear probing: Finds the position of
+        the key in the bucket or the first empty slot.
         """
         index = self._hash(key)
-        while self.buckets[index] is not self.EMPTY and self.buckets[index] != key:
+        while (self.buckets[index] is not self.EMPTY
+               and self.buckets[index] != key):
             index = (index + 1) % self.capacity
         return index
 
@@ -88,7 +96,8 @@ class ImmutableOpenAddressingSet:
 
     def _resize(self):
         """
-        Returns a new set with increased capacity and rehashed elements when the load factor is too high.
+        Returns a new set with increased capacity
+        and rehashed elements when the load factor is too high.
         """
         new_capacity = self.capacity * self.growth_factor
         new_buckets = [self.EMPTY] * new_capacity
@@ -100,12 +109,14 @@ class ImmutableOpenAddressingSet:
                 new_buckets[index] = key
         new_size = sum(1 for key in new_buckets if key is not self.EMPTY)
         return ImmutableOpenAddressingSet(
-            new_capacity, self.growth_factor, buckets=new_buckets, size=new_size
+            new_capacity, self.growth_factor,
+            buckets=new_buckets, size=new_size
         )
 
     def filter(self, predicate):
         """
-        Returns a new set containing only the elements that satisfy the predicate.
+        Returns a new set containing
+        only the elements that satisfy the predicate.
         """
         new_set = ImmutableOpenAddressingSet(self.capacity, self.growth_factor)
         for key in self.buckets:
@@ -115,7 +126,8 @@ class ImmutableOpenAddressingSet:
 
     def map(self, func):
         """
-        Returns a new set where each element is transformed by the given function.
+        Returns a new set where each
+        element is transformed by the given function.
         """
         new_set = ImmutableOpenAddressingSet(self.capacity, self.growth_factor)
         for key in self.buckets:
@@ -181,7 +193,8 @@ class ImmutableOpenAddressingSet:
 
     def concat(self, other_set):
         """
-        Returns a new set containing all elements from self and other_set (union of sets).
+        Returns a new set containing all
+        elements from self and other_set (union of sets).
         """
         new_set = self
         for key in other_set.buckets:
