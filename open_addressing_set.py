@@ -1,34 +1,51 @@
-class OpenAddressingSet:
+class ImmutableOpenAddressingSet:
     """
-    A hash set implementation using open addressing with
-    linear probing for collision resolution.
+    An immutable hash set implemented using open addressing (linear probing).
+
+    Once created, this set cannot be modified. Any modification operations
+    (such as adding or removing elements) will return a new instance, keeping
+    the original set unchanged.
     """
 
     EMPTY = object()
-    # Special marker to distinguish between `None` and empty slots
 
-    def __init__(self, initial_capacity=8, growth_factor=2):
+    def __init__(self, initial_capacity=8, growth_factor=2, buckets=None, size=0):
         """
-        Initialize the hash set.
+        Initializes an immutable hash set.
 
-        :param initial_capacity:
-        Initial size of the hash table (must be a power of 2)
-        :param growth_factor:
-        Growth factor for table expansion when load factor is too high
+        Parameters:
+          - initial_capacity: Initial capacity of the hash table (must be a power of 2)
+          - growth_factor: The factor by which the table expands when the load factor is too high
+          - buckets: Internal bucket list (internal parameter, not recommended for direct use)
+          - size: Current number of elements in the set (internal parameter)
         """
-        self.capacity = initial_capacity
-        self.size = 0
+        if buckets is None:
+            self.capacity = initial_capacity
+            self.buckets = [self.EMPTY] * self.capacity
+            self.size = 0
+        else:
+            self.capacity = len(buckets)
+            self.buckets = buckets
+            self.size = size
         self.growth_factor = growth_factor
-        self.buckets = [self.EMPTY] * self.capacity
+
+    def _clone(self):
+        """
+        Internal method: Creates a shallow copy of the current instance, used for modifications
+        without affecting the original instance.
+        """
+        new_buckets = self.buckets.copy()
+        return ImmutableOpenAddressingSet(self.capacity, self.growth_factor, buckets=new_buckets, size=self.size)
 
     def _hash(self, key):
-        """Compute the hash value and map it to a table index."""
+        """
+        Computes the hash value of the key and maps it to a bucket index.
+        """
         return hash(key) % self.capacity
 
     def _probe(self, key):
         """
-        Linear probing: Find the index of the key in the hash table
-        or the first empty slot for insertion.
+        Linear probing: Finds the position of the key in the bucket or the first empty slot.
         """
         index = self._hash(key)
         while (self.buckets[index] is not self.EMPTY
@@ -38,51 +55,74 @@ class OpenAddressingSet:
 
     def add(self, key):
         """
-        Add an element to the set.
-
-        :param key: The element to add
+        Returns a new set with the key added.
         """
-        if (self.size + 1) / self.capacity > 0.7:
-            self._resize()
+        if self.member(key):
+            return self
+        new_set = self._clone()
+        # Resize if the load factor is too high
+        if (new_set.size + 1) / new_set.capacity > 0.7:
+            new_set = new_set._resize()
+        index = new_set._probe(key)
+        if new_set.buckets[index] is self.EMPTY:
+            new_set.buckets[index] = key
+            new_set.size += 1
+        return new_set
 
-        index = self._probe(key)
-        if self.buckets[index] is self.EMPTY:
-            self.buckets[index] = key
-            self.size += 1
+    def remove(self, key):
+        """
+        Returns a new set with the key removed.
+        """
+        if not self.member(key):
+            return self
+        new_set = self._clone()
+        index = new_set._hash(key)
+        while new_set.buckets[index] is not self.EMPTY:
+            if new_set.buckets[index] == key:
+                new_set.buckets[index] = self.EMPTY
+                new_set.size -= 1
+                return new_set
+            index = (index + 1) % new_set.capacity
+        return new_set
+
+    def _resize(self):
+        """
+        Returns a new set with increased capacity and rehashed elements when the load factor is too high.
+        """
+        new_capacity = self.capacity * self.growth_factor
+        new_buckets = [self.EMPTY] * new_capacity
+        for key in self.buckets:
+            if key is not self.EMPTY:
+                index = hash(key) % new_capacity
+                while new_buckets[index] is not self.EMPTY:
+                    index = (index + 1) % new_capacity
+                new_buckets[index] = key
+        new_size = sum(1 for key in new_buckets if key is not self.EMPTY)
+        return ImmutableOpenAddressingSet(new_capacity, self.growth_factor, buckets=new_buckets, size=new_size)
 
     def filter(self, predicate):
         """
-        Filter elements in the set, retaining those that satisfy the predicate.
-
-        :param predicate: The filtering function
-        :return: A new set with filtered elements
+        Returns a new set containing only the elements that satisfy the predicate.
         """
-        new_set = OpenAddressingSet(self.capacity, self.growth_factor)
+        new_set = ImmutableOpenAddressingSet(self.capacity, self.growth_factor)
         for key in self.buckets:
             if key is not self.EMPTY and predicate(key):
-                new_set.add(key)
+                new_set = new_set.add(key)
         return new_set
 
     def map(self, func):
         """
-        Map elements in the set, returning a new set.
-
-        :param func: The mapping function
-        :return: A new set with mapped elements
+        Returns a new set where each element is transformed by the given function.
         """
-        new_set = OpenAddressingSet(self.capacity, self.growth_factor)
+        new_set = ImmutableOpenAddressingSet(self.capacity, self.growth_factor)
         for key in self.buckets:
             if key is not self.EMPTY:
-                new_set.add(func(key))
+                new_set = new_set.add(func(key))
         return new_set
 
     def reduce(self, func, initial_state):
         """
-        Reduce elements in the set to a single value.
-
-        :param func: The reduction function
-        :param initial_state: The initial state
-        :return: The result of reduction
+        Reduces the set elements into a single value.
         """
         state = initial_state
         for key in self.buckets:
@@ -90,26 +130,9 @@ class OpenAddressingSet:
                 state = func(state, key)
         return state
 
-    def remove(self, key):
-        """
-        Remove an element from the set.
-
-        :param key: The element to remove
-        """
-        index = self._hash(key)
-        while self.buckets[index] is not self.EMPTY:
-            if self.buckets[index] == key:
-                self.buckets[index] = self.EMPTY
-                self.size -= 1
-                return
-            index = (index + 1) % self.capacity
-
     def member(self, key):
         """
-        Check if an element exists in the set.
-
-        :param key: The element to check
-        :return: Whether the element exists
+        Checks if the key is in the set.
         """
         index = self._hash(key)
         while self.buckets[index] is not self.EMPTY:
@@ -118,58 +141,49 @@ class OpenAddressingSet:
             index = (index + 1) % self.capacity
         return False
 
-    def _resize(self):
-        """
-        Expand the hash table according to the growth factor.
-        """
-        old_buckets = self.buckets
-        self.capacity *= self.growth_factor
-        self.buckets = [self.EMPTY] * self.capacity
-        self.size = 0
-
-        for key in old_buckets:
-            if key is not self.EMPTY:
-                self.add(key)
-
     def to_list(self):
-        """Convert the set to a Python list."""
+        """
+        Converts the set to a list.
+        """
         return [key for key in self.buckets if key is not self.EMPTY]
 
-    def from_list(self, lst):
-        """Create a set from a list."""
+    @staticmethod
+    def from_list(lst, initial_capacity=8, growth_factor=2):
+        """
+        Constructs an immutable set from a list.
+        """
+        new_set = ImmutableOpenAddressingSet(initial_capacity, growth_factor)
         for key in lst:
-            self.add(key)
+            new_set = new_set.add(key)
+        return new_set
 
     def __iter__(self):
-        """Implement the iterator interface."""
-        self.iter_index = 0
+        self._iter_index = 0
         return self
 
     def __next__(self):
-        """Support the `next()` method."""
-        while self.iter_index < self.capacity:
-            key = self.buckets[self.iter_index]
-            self.iter_index += 1
+        while self._iter_index < self.capacity:
+            key = self.buckets[self._iter_index]
+            self._iter_index += 1
             if key is not self.EMPTY:
                 return key
         raise StopIteration
 
     @staticmethod
-    def empty():
-        """Return an empty set."""
-        return OpenAddressingSet()
+    def empty(initial_capacity=8, growth_factor=2):
+        """
+        Returns an empty immutable set.
+        """
+        return ImmutableOpenAddressingSet(initial_capacity, growth_factor)
 
     def concat(self, other_set):
         """
-        Concatenate two sets, returning a new set.
-
-        :param other_set: The other set to concatenate
+        Returns a new set containing all elements from self and other_set (union of sets).
         """
-        new_set = OpenAddressingSet()
-        for key in self.buckets:
-            if key is not self.EMPTY:
-                new_set.add(key)
+        new_set = self
         for key in other_set.buckets:
             if key is not self.EMPTY:
-                new_set.add(key)
+                new_set = new_set.add(key)
         return new_set
+
+
