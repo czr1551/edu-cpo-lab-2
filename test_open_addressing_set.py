@@ -52,6 +52,7 @@ def test_from_list():
     assert s.member(3) is True
     assert s.member(4) is False
 
+
 # -----------------------
 # Iterator Tests
 # -----------------------
@@ -61,6 +62,7 @@ def test_iterator():
     s = ImmutableOpenAddressingSet.from_list([1, 2, 3])
     result = list(iter(s))
     assert sorted(result) == [1, 2, 3]
+
 
 # -----------------------
 # Filter, Map, and Reduce
@@ -75,7 +77,7 @@ def test_filter():
 
 def test_map():
     s = ImmutableOpenAddressingSet.from_list([1, 2, 3])
-    squared_set = s.map(lambda x: x ** 2)
+    squared_set = s.map(lambda x: x**2)
     assert sorted(squared_set.to_list()) == [1, 4, 9]
 
 
@@ -83,6 +85,7 @@ def test_reduce():
     s = ImmutableOpenAddressingSet.from_list([1, 2, 3, 4])
     total = s.reduce(lambda acc, x: acc + x, 0)
     assert total == 10  # 1+2+3+4 = 10
+
 
 # -----------------------
 # Monoid (empty & concat)
@@ -100,6 +103,7 @@ def test_concat():
     s3 = s1.concat(s2)
     assert sorted(s3.to_list()) == [1, 2, 3, 4, 5]
 
+
 # -----------------------
 # Handling `None` Values
 # -----------------------
@@ -111,6 +115,7 @@ def test_none_value():
     assert s1.member(None) is True
     s2 = s1.remove(None)
     assert s2.member(None) is False
+
 
 # -----------------------
 # Testing Hash Set Resizing Logic
