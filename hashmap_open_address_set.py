@@ -139,7 +139,8 @@ def to_list(set_obj):
 
 def intersection(set1, set2):
     """Return intersection of two sets"""
-    smaller, larger = (set1, set2) if length(set1) < length(set2) else (set2, set1)
+    smaller, larger = (set1, set2) if length(set1) < length(set2) \
+        else (set2, set1)
     result = empty()
     for elem in smaller:
         if member(elem, larger):
@@ -149,7 +150,8 @@ def intersection(set1, set2):
 
 def concat(set1, set2):
     """Combine two sets"""
-    smaller, larger = (set1, set2) if length(set1) < length(set2) else (set2, set1)
+    smaller, larger = (set1, set2) if length(set1) < length(set2) \
+        else (set2, set1)
     result = larger
     for elem in smaller:
         if not member(elem, result):

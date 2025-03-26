@@ -112,14 +112,15 @@ def test_api():
         return x + 1 if x is not None else None
 
     mapped = map_set(l3, increment)
-    assert to_list(mapped) == [2, 3, 4, 5, 6, 7] or sorted(to_list(mapped)) == [
+    assert (to_list(mapped) == [2, 3, 4, 5, 6, 7] or
+            sorted(to_list(mapped)) == [
         2,
         3,
         4,
         5,
         6,
         7,
-    ]
+    ])
     print("Map test passed")
 
     # Test reduce function
