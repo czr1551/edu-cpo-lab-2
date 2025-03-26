@@ -1,6 +1,4 @@
-import itertools
 from hashmap_open_address_set import (
-    HashMapOpenAddressSet,
     concat,
     cons,
     from_list,
