@@ -3,7 +3,7 @@ class HashMapOpenAddressSet:
 
     def __init__(self, size=8, elements=None, length=0):
         self.size = size
-        self.array = [self.EMPTY_SLOT] * size  # 用 EMPTY_SLOT 作为空槽位
+        self.array = [self.EMPTY_SLOT] * size  # 用 EMPTY_SLOT 作为空槽
         self.length = length
         if elements is not None:
             for elem in elements:
