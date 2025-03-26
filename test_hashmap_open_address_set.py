@@ -15,6 +15,7 @@ from hashmap_open_address_set import (
     empty,
 )
 
+
 def test_api():
     print("Running tests...")
 
@@ -58,8 +59,7 @@ def test_api():
     assert intersection(l1, l2) == l1
     assert intersection(l1, l2) == l2
     assert intersection(l1, empty_set) == empty_set
-    assert (intersection(l1, cons(None, empty_set))
-            == cons(None, empty_set))
+    assert intersection(l1, cons(None, empty_set)) == cons(None, empty_set)
     print("Intersection tests passed")
 
     # Test conversion to/from list
@@ -78,6 +78,7 @@ def test_api():
         buf.append(e)
     # 使用列表推导式将所有排列转换为列表
     from itertools import permutations
+
     assert buf in [list(p) for p in permutations([1, None])]
     print("Iteration test passed")
 
@@ -96,12 +97,14 @@ def test_api():
 
     l3 = from_list([1, 2, 3, 4, 5, 6])
     filtered = filter(l3, is_even)
-    assert (to_list(filtered) == [2, 4, 6] or to_list(filtered)
-            == [4, 6, 2] or \
-           to_list(filtered) == [2, 6, 4] or to_list(filtered)
-            == [4, 2, 6] or \
-           to_list(filtered) == [6, 2, 4] or to_list(filtered)
-            == [6, 4, 2])
+    assert (
+        to_list(filtered) == [2, 4, 6]
+        or to_list(filtered) == [4, 6, 2]
+        or to_list(filtered) == [2, 6, 4]
+        or to_list(filtered) == [4, 2, 6]
+        or to_list(filtered) == [6, 2, 4]
+        or to_list(filtered) == [6, 4, 2]
+    )
     print("Filter test passed")
 
     # Test map function
@@ -109,8 +112,14 @@ def test_api():
         return x + 1 if x is not None else None
 
     mapped = map_set(l3, increment)
-    assert to_list(mapped) == [2, 3, 4, 5, 6, 7] or \
-           sorted(to_list(mapped)) == [2, 3, 4, 5, 6, 7]
+    assert to_list(mapped) == [2, 3, 4, 5, 6, 7] or sorted(to_list(mapped)) == [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+    ]
     print("Map test passed")
 
     # Test reduce function
@@ -129,6 +138,7 @@ def test_api():
 
     print("All tests passed successfully!")
 
+
 def main():
     try:
         test_api()
@@ -138,6 +148,7 @@ def main():
     except Exception as e:
         print(f"Error occurred: {e}")
         raise
+
 
 if __name__ == "__main__":
     main()
