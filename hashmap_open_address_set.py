@@ -56,11 +56,9 @@ class HashMapOpenAddressSet:
             if elem is not self.EMPTY_SLOT:
                 yield elem
 
-
 def empty():
     """返回空集合"""
     return HashMapOpenAddressSet()
-
 
 def cons(element, set_obj):
     """添加元素到集合"""
@@ -86,10 +84,8 @@ def cons(element, set_obj):
 
     return HashMapOpenAddressSet(
         size=set_obj.size,
-        elements=[e for e in new_array if e is not set_obj.EMPTY_SLOT],
-        length=len([e for e in new_array if e is not set_obj.EMPTY_SLOT])
+        elements=[e for e in new_array if e is not set_obj.EMPTY_SLOT]
     )
-
 
 def member(element, set_obj):
     """检查元素是否在集合中"""
@@ -102,8 +98,7 @@ def member(element, set_obj):
             return True
     return False
 
-
-def remove(element, set_obj):
+def remove(set_obj, element):
     """删除元素"""
     if not member(element, set_obj):
         return set_obj
@@ -115,16 +110,13 @@ def remove(element, set_obj):
             new_array[index] = set_obj.EMPTY_SLOT  # 这里修正 EMPTY_SLOT
             return HashMapOpenAddressSet(
                 size=set_obj.size,
-                elements=[e for e in new_array if e is not set_obj.EMPTY_SLOT],
-                length=set_obj.length - 1
+                elements=[e for e in new_array if e is not set_obj.EMPTY_SLOT]
             )
     return set_obj
-
 
 def length(set_obj):
     """Return number of elements in set"""
     return set_obj.length
-
 
 def from_list(lst):
     """Create set from list"""
@@ -133,11 +125,9 @@ def from_list(lst):
         s = cons(elem, s)
     return s
 
-
 def to_list(set_obj):
     """Convert set to list"""
-    return [elem for elem in set_obj.array if elem is not None]
-
+    return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
 
 def intersection(set1, set2):
     """Return intersection of two sets"""
@@ -148,7 +138,6 @@ def intersection(set1, set2):
             result = cons(elem, result)
     return result
 
-
 def concat(set1, set2):
     """Combine two sets"""
     smaller, larger = (set1, set2) if length(set1) < length(set2) else (set2, set1)
@@ -158,14 +147,12 @@ def concat(set1, set2):
             result = cons(elem, result)
     return result
 
-
 def find(set_obj, predicate):
     """Find first element matching predicate"""
     for elem in set_obj:
         if predicate(elem):
             return elem
     return None
-
 
 def filter(set_obj, predicate):
     """Filter set elements based on predicate function"""
@@ -175,14 +162,12 @@ def filter(set_obj, predicate):
             result = cons(elem, result)
     return result
 
-
-def map(set_obj, func):
+def map_set(set_obj, func):
     """Apply function to each element in set"""
     result = empty()
     for elem in set_obj:
         result = cons(func(elem), result)
     return result
-
 
 def reduce(set_obj, func, initial=None):
     """Reduce set elements using function"""
@@ -193,7 +178,6 @@ def reduce(set_obj, func, initial=None):
         else:
             acc = func(acc, elem)
     return acc
-
 
 def iterator(set_obj):
     """Return iterator for the set"""
