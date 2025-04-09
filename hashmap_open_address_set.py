@@ -3,12 +3,17 @@ from typing import Optional, Callable, Iterable, Iterator, List, Tuple, TypeVar,
 T = TypeVar('T')
 U = TypeVar('U')
 
+
 class HashMapOpenAddressSet(Generic[T]):
     EMPTY_SLOT = object()
 
-    def __init__(self, size: int = 8, array: Optional[Iterable[object]] = None, length: int = 0):
+    def __init__(self,
+                 size: int = 8,
+                 array: Optional[Iterable[object]] = None,
+                 length: int = 0):
         self.size: int = size
-        self.array: Tuple[object, ...] = tuple(array if array is not None else [self.EMPTY_SLOT] * size)
+        self.array: Tuple[object, ...] = tuple(
+            array if array is not None else [self.EMPTY_SLOT] * size)
         self.length: int = length
 
     def __str__(self) -> str:
@@ -18,19 +23,25 @@ class HashMapOpenAddressSet(Generic[T]):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, HashMapOpenAddressSet):
             return False
-        return set(e for e in self.array if e is not self.EMPTY_SLOT) == \
-               set(e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
+        return set(e for e in self.array if e is not self.EMPTY_SLOT) == set(
+            e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
 
     def __iter__(self) -> Iterator[T]:
         return (e for e in self.array if e is not self.EMPTY_SLOT)  # type: ignore
 
     def __hash__(self) -> int:
-        return hash(frozenset(e for e in self.array if e is not self.EMPTY_SLOT))
+        return hash(
+            frozenset(
+                e for e in self.array if e is not self.EMPTY_SLOT))
+
 
 def empty() -> HashMapOpenAddressSet[T]:
     return HashMapOpenAddressSet()
 
-def cons(element: T, set_obj: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+
+def cons(
+        element: T,
+        set_obj: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
     if member(element, set_obj):
         return set_obj
 
@@ -58,6 +69,7 @@ def cons(element: T, set_obj: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet
         new_set = cons(elem, new_set)
     return cons(element, new_set)
 
+
 def member(element: T, set_obj: HashMapOpenAddressSet[T]) -> bool:
     element_hash = hash(element)
     for i in range(set_obj.size):
@@ -68,7 +80,10 @@ def member(element: T, set_obj: HashMapOpenAddressSet[T]) -> bool:
             return True
     return False
 
-def remove(set_obj: HashMapOpenAddressSet[T], element: T) -> HashMapOpenAddressSet[T]:
+
+def remove(
+        set_obj: HashMapOpenAddressSet[T],
+        element: T) -> HashMapOpenAddressSet[T]:
     if not member(element, set_obj):
         return set_obj
 
@@ -84,8 +99,10 @@ def remove(set_obj: HashMapOpenAddressSet[T], element: T) -> HashMapOpenAddressS
             )
     return set_obj
 
+
 def length(set_obj: HashMapOpenAddressSet[T]) -> int:
     return set_obj.length
+
 
 def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
     s = empty()
@@ -93,45 +110,64 @@ def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
         s = cons(elem, s)
     return s
 
-def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
-    return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]  # 保证包括 None
 
-def intersection(set1: HashMapOpenAddressSet[T], set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
-    smaller, larger = (set1, set2) if length(set1) < length(set2) else (set2, set1)
+def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
+    # 保证包括 None
+    return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
+
+
+def intersection(
+        set1: HashMapOpenAddressSet[T],
+        set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+    smaller, larger = (set1, set2) if length(
+        set1) < length(set2) else (set2, set1)
     result = empty()
     for elem in smaller:
         if member(elem, larger):
             result = cons(elem, result)
     return result
 
-def concat(set1: HashMapOpenAddressSet[T], set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
-    smaller, larger = (set1, set2) if length(set1) < length(set2) else (set2, set1)
+
+def concat(
+        set1: HashMapOpenAddressSet[T],
+        set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+    smaller, larger = (set1, set2) if length(
+        set1) < length(set2) else (set2, set1)
     result = larger
     for elem in smaller:
         if not member(elem, result):
             result = cons(elem, result)
     return result
 
-def find(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[T], bool]) -> Optional[T]:
+
+def find(set_obj: HashMapOpenAddressSet[T],
+         predicate: Callable[[T],
+                             bool]) -> Optional[T]:
     for elem in set_obj:
         if predicate(elem):
             return elem
     return None
 
-def filter(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[T], bool]) -> HashMapOpenAddressSet[T]:
+
+def filter(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[
+           T], bool]) -> HashMapOpenAddressSet[T]:
     result = empty()
     for elem in set_obj:
         if predicate(elem):
             result = cons(elem, result)
     return result
 
-def map_set(set_obj: HashMapOpenAddressSet[T], func: Callable[[T], U]) -> HashMapOpenAddressSet[U]:
+
+def map_set(set_obj: HashMapOpenAddressSet[T], func: Callable[[
+            T], U]) -> HashMapOpenAddressSet[U]:
     result: HashMapOpenAddressSet[U] = empty()
     for elem in set_obj:
         result = cons(func(elem), result)
     return result
 
-def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[U, T], U], initial: Optional[U] = None) -> U:
+
+def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[
+           U, T], U], initial: Optional[U] = None) -> U:
     it = iter(set_obj)
     if initial is None:
         try:
@@ -143,6 +179,7 @@ def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[U, T], U], initial
     for elem in it:
         acc = func(acc, elem)  # type: ignore
     return acc
+
 
 def iterator(set_obj: HashMapOpenAddressSet[T]) -> Iterator[T]:
     return iter(set_obj)
