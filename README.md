@@ -57,6 +57,11 @@ collision resolution and functional set operations.
 
 ## Changelog
 
+- **30.03.2025 - 0**
+- Added Monoid property tests:
+  Identity element: Verified the identity element property in set concatenation.
+  Associativity: Verified the associativity of the concatenation operation.
+  Complex associativity: Tested associativity in complex set concatenations.
 - **12.03.2025 - 0**
 - Added HashMapOpenAddressSet with open addressing using
   linear probing.
