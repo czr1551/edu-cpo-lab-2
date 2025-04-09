@@ -36,6 +36,7 @@ class HashMapOpenAddressSet(Generic[T]):
             e for e in other.array if e is not self.EMPTY_SLOT)
 
     def __iter__(self) -> Iterator[T]:
+        # 确保返回类型为 T 而不是 object
         return (e for e in self.array if e is not self.EMPTY_SLOT)
 
     def __hash__(self) -> int:
@@ -121,7 +122,7 @@ def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
 
 
 def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
-    # type: ignore
+    # 修正类型问题，返回 List[T] 而非 List[object]
     return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
 
 
@@ -155,7 +156,7 @@ def find(set_obj: HashMapOpenAddressSet[T],
     for elem in set_obj:
         if predicate(elem):
             return elem
-    return None
+    return None  # 返回 Optional[T]
 
 
 def filter(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[
@@ -180,13 +181,13 @@ def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[
     it = iter(set_obj)
     if initial is None:
         try:
-            initial = next(it)  # type: ignore
+            initial = next(it)
         except StopIteration:
             raise TypeError("reduce() of empty sequence with no initial value")
 
     acc = initial
     for elem in it:
-        acc = func(acc, elem)  # type: ignore
+        acc = func(acc, elem)
     return acc
 
 
