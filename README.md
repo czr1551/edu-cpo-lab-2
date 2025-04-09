@@ -20,26 +20,26 @@ collision resolution and functional set operations.
 
 - **Core functionality:**
 
-  - `cons(element, set)`: Return a new set with the element
-    added (does not mutate original).
-  - `remove(key)`: Returns a new set with the element removed.
-  - `member(element, set)`: Check if an element exists.
-  - `length(set)`: Get the number of elements.
-  - `from_list(lst)`: Create a new immutable set from
-    a Python list.
-  - `to_list()`: Convert the set to a Python list.
-  - `concat(set)`: Merge two sets, returning a new set.
-  - `intersection(set1, set2)`: Return a new set with elements
-    common to both.
+- `cons(element, set)`: Return a new set with the element
+  added (does not mutate original).
+- `remove(key)`: Returns a new set with the element removed.
+- `member(element, set)`: Check if an element exists.
+- `length(set)`: Get the number of elements.
+- `from_list(lst)`: Create a new immutable set from
+  a Python list.
+- `to_list()`: Convert the set to a Python list.
+- `concat(set)`: Merge two sets, returning a new set.
+- `intersection(set1, set2)`: Return a new set with elements
+  common to both.
 
 - **Functional operations:**
 
-  - `filter(set, predicate)`:  Filter elements based on a
-    predicate function.
-  - `map_set(set, func)`: Apply a function to each element
-    and return a new set.
-  - `reduce(set, func, initial)`: Reduce the elements using a binary
-    function and initial value.
+- `filter(set, predicate)`:  Filter elements based on a
+  predicate function.
+- `map_set(set, func)`: Apply a function to each element
+  and return a new set.
+- `reduce(set, func, initial)`: Reduce the elements using a binary
+  function and initial value.
 
 - **Other Utilities:**
 
@@ -58,11 +58,11 @@ collision resolution and functional set operations.
 ## Changelog
 
 - **12.03.2025 - 0**
-  - Added HashMapOpenAddressSet with open addressing using
-    linear probing.
-    Introduced immutable-like APIs that return new set instances.
-    Added functional-style methods: map_set, filter, reduce, and more.
-    Complete test suite with property-based and unit tests.
+- Added HashMapOpenAddressSet with open addressing using
+  linear probing.
+  Introduced immutable-like APIs that return new set instances.
+  Added functional-style methods: map_set, filter, reduce, and more.
+  Complete test suite with property-based and unit tests.
 
 ## Design notes
 
