@@ -12,6 +12,7 @@ from hashmap_open_address_set import (
     reduce,
     empty,
 )
+from functools import reduce
 
 
 def test_api():
