@@ -60,9 +60,9 @@ collision resolution and functional set operations.
 - **12.03.2025 - 0**
   - Added HashMapOpenAddressSet with open addressing using
     linear probing.
-  - Introduced immutable-like APIs that return new set instances.
-  - Added functional-style methods: map_set, filter, reduce, and more.
-  - Complete test suite with property-based and unit tests.
+    Introduced immutable-like APIs that return new set instances.
+    Added functional-style methods: map_set, filter, reduce, and more.
+    Complete test suite with property-based and unit tests.
 
 ## Design notes
 
