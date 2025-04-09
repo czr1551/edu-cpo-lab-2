@@ -33,10 +33,10 @@ class HashMapOpenAddressSet(Generic[T]):
         if not isinstance(other, HashMapOpenAddressSet):
             return False
         return set(e for e in self.array if e is not self.EMPTY_SLOT) == set(
-            e for e in other.array if e is not self.EMPTY_SLOT)
+            e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
 
     def __iter__(self) -> Iterator[T]:
-        return (e for e in self.array if e is not self.EMPTY_SLOT)
+        return (e for e in self.array if e is not self.EMPTY_SLOT)  # type: ignore
 
     def __hash__(self) -> int:
         return hash(
@@ -114,14 +114,14 @@ def length(set_obj: HashMapOpenAddressSet[T]) -> int:
 
 
 def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
-    s = empty()
+    s: HashMapOpenAddressSet[T] = empty()
     for elem in lst:
         s = cons(elem, s)
     return s
 
 
 def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
-    # 保证包括 None
+    # type: ignore
     return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
 
 
@@ -130,7 +130,7 @@ def intersection(
         set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
     smaller, larger = (set1, set2) if length(
         set1) < length(set2) else (set2, set1)
-    result = empty()
+    result: HashMapOpenAddressSet[T] = empty()
     for elem in smaller:
         if member(elem, larger):
             result = cons(elem, result)
@@ -142,7 +142,7 @@ def concat(
         set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
     smaller, larger = (set1, set2) if length(
         set1) < length(set2) else (set2, set1)
-    result = larger
+    result: HashMapOpenAddressSet[T] = larger
     for elem in smaller:
         if not member(elem, result):
             result = cons(elem, result)
@@ -160,7 +160,7 @@ def find(set_obj: HashMapOpenAddressSet[T],
 
 def filter(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[
            T], bool]) -> HashMapOpenAddressSet[T]:
-    result = empty()
+    result: HashMapOpenAddressSet[T] = empty()
     for elem in set_obj:
         if predicate(elem):
             result = cons(elem, result)
