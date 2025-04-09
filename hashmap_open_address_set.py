@@ -176,7 +176,6 @@ def map_set(set_obj: HashMapOpenAddressSet[T], func: Callable[[
     return result
 
 
-# type: ignore
 def reduce(
         set_obj: HashMapOpenAddressSet[T],
         func: Callable[[U, T], U],
@@ -185,7 +184,7 @@ def reduce(
     it = iter(set_obj)
     if initial is None:
         try:
-            initial = cast(U, next(it))  # 显式转换为 U 类型
+            initial = cast(U, next(it))
         except StopIteration:
             raise TypeError("reduce() of empty sequence with no initial value")
 
