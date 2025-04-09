@@ -1,68 +1,79 @@
 # GROUP-NO DAY OFF - lab 2 - variant "Set based on hash map, open addressing"
 
-This project implements a Set based on Hash Map (Open Addressing) and  
-demonstrates mutable data structure implementation. It follows proper  
-project structure and CI checks. 
+This project implements a Set using a Hash Map with open 
+addressing strategy and supports immutable-style operations 
+(functional programming style) even though the underlying data 
+structure is mutable. It demonstrates efficient hashing with 
+collision resolution and functional set operations.
 
 ## Project structure
 
-- `open_addressing_set.py` — Implementation of the `ImmutableOpenAddressingSet`
-  class with `add`, `remove`, `member`, `filter`, `map`, `reduce`,
-  and other functional features.  All operations return new instances
-  without modifying the original set.
+- `hashmap_open_address_set.py` — Core implementation of the
+  HashMapOpenAddressSet and associated functional-style
+  APIs like cons, remove, map_set, reduce, etc.
 
-- `test_open_addressing_set.py` — Unit tests and Property-Based Tests (PBT)  
-  for `ImmutableOpenAddressingSet`.
+- `test_hashmap_open_address_set.py` — — Comprehensive unit
+  tests for all operations on HashMapOpenAddressSet,
+  including functional correctness and property-based behavior.
 
 ## Features
 
 - **Core functionality:**
 
-  - `add(key)`: Returns a new set with the element added.
+  - `cons(element, set)`: Return a new set with the element
+  added (does not mutate original).
   - `remove(key)`: Returns a new set with the element removed.
-  - `member(key)`: Check if an element exists.
-  - `size`: Get the number of elements.
-  - `from_list(lst)`: Create a new immutable set from a Python list.
+  - `member(element, set)`: Check if an element exists.
+  - `length(set)`: Get the number of elements.
+  - `from_list(lst)`: Create a new immutable set from
+    a Python list.
   - `to_list()`: Convert the set to a Python list.
   - `concat(set)`: Merge two sets, returning a new set.
+  - `intersection(set1, set2)`: Return a new set with elements
+    common to both.
 
 - **Functional operations:**
 
-  - `filter(predicate)`: Return a new set with elements that satisfy
-  the predicate.
-  - `map(func)`: Apply a function to all elements and return a new set.
-  - `reduce(func, initial_state)`: Aggregate values using a given function.
+  - `filter(set, predicate)`:  Filter elements based on a
+    predicate function.
+  - `map_set(set, func)`: Apply a function to each element
+    and return a new set.
+  - `reduce(set, func, initial)`: Reduce the elements using a binary
+    function and initial value.
 
-- **PBT:**
-- `test_from_list_to_list_equality`
-- `test_python_len_and_set_size_equality`
-- `test_add_commutative`
 
-- **Monoid properties:**
+- **Other Utilities:**
 
 - `empty()`: Create an empty set.
-- `concat(set)`: Combine two sets, returning a new set.
+- `iterator(set)`: Return an iterator over the set.
+- `find(set, predicate)`: Return the first element that
+  satisfies a predicate.
 
 ## Contribution
 
-- `<czr61551@gmail.com>` -- Implementation of `ImmutableOpenAddressingSet`,  
-  documentation.
+- `<czr61551@gmail.com>` -- Implementation of core data
+  structure and helper functions.
 
 - `<quinn_wang0416@163.com>` -- Implementation of test cases.
 
 ## Changelog
 
 - **12.03.2025 - 0**
-  - Updated implementation to use an immutable data structure design.  
-    All operations now return new instances without modifying the original.
+  - Added HashMapOpenAddressSet with open addressing using
+    linear probing.
+  - Introduced immutable-like APIs that return new set instances.
+  - Added functional-style methods: map_set, filter, reduce, and more.
+  - Complete test suite with property-based and unit tests.
 
 ## Design notes
 
-- Used open addressing with linear probing for collision resolution.
-- Used a special marker `EMPTY` to distinguish empty slots from `None`.
+- Collision Resolution: Uses open addressing with linear probing.
+- Slot Handling: Introduced a unique EMPTY_SLOT sentinel to
+  distinguish empty entries.
 - Ensured logarithmic growth factor to maintain efficient resizing.
 - All operations follow immutability principles by returning new instances.
-- Designed unit tests and PBT to validate properties of
-  `ImmutableOpenAddressingSet`.
-- Followed PEP8 and CI best practices with `pytest`, `ruff`, `mypy`,  
-  and `coverage`.
+- Immutability Principle: All external operations return new set
+  instances, following a functional style.
+- Efficiency: Dynamic resizing maintains performance with
+  logarithmic growth. 
+
