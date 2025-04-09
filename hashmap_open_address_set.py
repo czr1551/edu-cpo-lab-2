@@ -1,74 +1,41 @@
-class HashMapOpenAddressSet:
-    EMPTY_SLOT = object()  # 创建一个唯一的对象，代表空槽位
+from typing import Optional, Callable, Iterable, Iterator, List, Tuple, TypeVar, Generic
 
-    def __init__(self, size=8, elements=None, length=0):
-        self.size = size
-        self.array = [self.EMPTY_SLOT] * size  # 用 EMPTY_SLOT 作为空槽
-        self.length = length
-        if elements is not None:
-            for elem in elements:
-                self._insert(elem)
+T = TypeVar('T')
+U = TypeVar('U')
 
-    def _hash(self, element, i=0):
-        """哈希函数 + 线性探测"""
-        element_hash = hash(element)
-        return (element_hash + i) % self.size
+class HashMapOpenAddressSet(Generic[T]):
+    EMPTY_SLOT = object()
 
-    def _insert(self, element):
-        """插入元素"""
-        for i in range(self.size):
-            index = self._hash(element, i)
-            if self.array[index] is self.EMPTY_SLOT:  # 只在空槽插入
-                self.array[index] = element
-                self.length += 1
-                return
-            if self.array[index] == element:
-                return  # 已存在
-        self._resize()
-        self._insert(element)
+    def __init__(self, size: int = 8, array: Optional[Iterable[object]] = None, length: int = 0):
+        self.size: int = size
+        self.array: Tuple[object, ...] = tuple(array if array is not None else [self.EMPTY_SLOT] * size)
+        self.length: int = length
 
-    def _resize(self):
-        """扩容"""
-        new_size = self.size * 2
-        new_array = [self.EMPTY_SLOT] * new_size  # 用 EMPTY_SLOT 替代 None
-        old_array = self.array
-        self.array = new_array
-        self.size = new_size
-        self.length = 0
-        for elem in old_array:
-            if elem is not self.EMPTY_SLOT:
-                self._insert(elem)
-
-    def __str__(self):
-        """字符串表示"""
+    def __str__(self) -> str:
         elements = [str(e) for e in self.array if e is not self.EMPTY_SLOT]
         return "{" + ", ".join(sorted(elements, key=str)) + "}"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, HashMapOpenAddressSet):
             return False
-        self_elems = set(e for e in self.array if e is not self.EMPTY_SLOT)
-        other_elems = set(e for e in other.array if e is not self.EMPTY_SLOT)
-        return self_elems == other_elems
+        return set(e for e in self.array if e is not self.EMPTY_SLOT) == \
+               set(e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
 
-    def __iter__(self):
-        for elem in self.array:
-            if elem is not self.EMPTY_SLOT:
-                yield elem
+    def __iter__(self) -> Iterator[T]:
+        return (e for e in self.array if e is not self.EMPTY_SLOT)  # type: ignore
 
+    def __hash__(self) -> int:
+        return hash(frozenset(e for e in self.array if e is not self.EMPTY_SLOT))
 
-def empty():
-    """返回空集合"""
+def empty() -> HashMapOpenAddressSet[T]:
     return HashMapOpenAddressSet()
 
-
-def cons(element, set_obj):
-    """添加元素到集合"""
+def cons(element: T, set_obj: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
     if member(element, set_obj):
-        return set_obj  # 已存在，直接返回
+        return set_obj
 
-    new_array = list(set_obj.array)  # 复制数组
     element_hash = hash(element)
+    new_array = list(set_obj.array)
     inserted = False
 
     for i in range(set_obj.size):
@@ -78,32 +45,30 @@ def cons(element, set_obj):
             inserted = True
             break
 
-    if not inserted:
-        new_set = HashMapOpenAddressSet(size=set_obj.size * 2)
-        for elem in set_obj:
-            new_set = cons(elem, new_set)
-        return cons(element, new_set)
+    if inserted:
+        return HashMapOpenAddressSet(
+            size=set_obj.size,
+            array=new_array,
+            length=set_obj.length + 1
+        )
 
-    return HashMapOpenAddressSet(
-        size=set_obj.size,
-        elements=[e for e in new_array if e is not set_obj.EMPTY_SLOT],
-    )
+    new_size = set_obj.size * 2
+    new_set = HashMapOpenAddressSet[T](size=new_size)
+    for elem in set_obj:
+        new_set = cons(elem, new_set)
+    return cons(element, new_set)
 
-
-def member(element, set_obj):
-    """检查元素是否在集合中"""
+def member(element: T, set_obj: HashMapOpenAddressSet[T]) -> bool:
     element_hash = hash(element)
     for i in range(set_obj.size):
         index = (element_hash + i) % set_obj.size
-        if set_obj.array[index] is set_obj.EMPTY_SLOT:  # 这里修正 EMPTY_SLOT
+        if set_obj.array[index] is set_obj.EMPTY_SLOT:
             return False
         if set_obj.array[index] == element:
             return True
     return False
 
-
-def remove(set_obj, element):
-    """删除元素"""
+def remove(set_obj: HashMapOpenAddressSet[T], element: T) -> HashMapOpenAddressSet[T]:
     if not member(element, set_obj):
         return set_obj
 
@@ -111,90 +76,73 @@ def remove(set_obj, element):
     for i in range(set_obj.size):
         index = (hash(element) + i) % set_obj.size
         if new_array[index] == element:
-            new_array[index] = set_obj.EMPTY_SLOT  # 这里修正 EMPTY_SLOT
+            new_array[index] = set_obj.EMPTY_SLOT
             return HashMapOpenAddressSet(
                 size=set_obj.size,
-                elements=[e for e in new_array if e is not set_obj.EMPTY_SLOT],
+                array=new_array,
+                length=set_obj.length - 1
             )
     return set_obj
 
-
-def length(set_obj):
-    """Return number of elements in set"""
+def length(set_obj: HashMapOpenAddressSet[T]) -> int:
     return set_obj.length
 
-
-def from_list(lst):
-    """Create set from list"""
+def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
     s = empty()
     for elem in lst:
         s = cons(elem, s)
     return s
 
+def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
+    return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]  # 保证包括 None
 
-def to_list(set_obj):
-    """Convert set to list"""
-    return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
-
-
-def intersection(set1, set2):
-    """Return intersection of two sets"""
-    smaller, larger = (set1, set2) if length(set1) < length(set2) \
-        else (set2, set1)
+def intersection(set1: HashMapOpenAddressSet[T], set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+    smaller, larger = (set1, set2) if length(set1) < length(set2) else (set2, set1)
     result = empty()
     for elem in smaller:
         if member(elem, larger):
             result = cons(elem, result)
     return result
 
-
-def concat(set1, set2):
-    """Combine two sets"""
-    smaller, larger = (set1, set2) if length(set1) < length(set2) \
-        else (set2, set1)
+def concat(set1: HashMapOpenAddressSet[T], set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+    smaller, larger = (set1, set2) if length(set1) < length(set2) else (set2, set1)
     result = larger
     for elem in smaller:
         if not member(elem, result):
             result = cons(elem, result)
     return result
 
-
-def find(set_obj, predicate):
-    """Find first element matching predicate"""
+def find(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[T], bool]) -> Optional[T]:
     for elem in set_obj:
         if predicate(elem):
             return elem
     return None
 
-
-def filter(set_obj, predicate):
-    """Filter set elements based on predicate function"""
+def filter(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[T], bool]) -> HashMapOpenAddressSet[T]:
     result = empty()
     for elem in set_obj:
         if predicate(elem):
             result = cons(elem, result)
     return result
 
-
-def map_set(set_obj, func):
-    """Apply function to each element in set"""
-    result = empty()
+def map_set(set_obj: HashMapOpenAddressSet[T], func: Callable[[T], U]) -> HashMapOpenAddressSet[U]:
+    result: HashMapOpenAddressSet[U] = empty()
     for elem in set_obj:
         result = cons(func(elem), result)
     return result
 
+def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[U, T], U], initial: Optional[U] = None) -> U:
+    it = iter(set_obj)
+    if initial is None:
+        try:
+            initial = next(it)  # type: ignore
+        except StopIteration:
+            raise TypeError("reduce() of empty sequence with no initial value")
 
-def reduce(set_obj, func, initial=None):
-    """Reduce set elements using function"""
     acc = initial
-    for elem in set_obj:
-        if acc is None:
-            acc = elem
-        else:
-            acc = func(acc, elem)
+    for elem in it:
+        acc = func(acc, elem)  # type: ignore
     return acc
 
-
-def iterator(set_obj):
-    """Return iterator for the set"""
+def iterator(set_obj: HashMapOpenAddressSet[T]) -> Iterator[T]:
     return iter(set_obj)
