@@ -1,9 +1,9 @@
 # GROUP-NO DAY OFF - lab 2 - variant "Set based on hash map, open addressing"
 
-This project implements a Set using a Hash Map with open 
-addressing strategy and supports immutable-style operations 
-(functional programming style) even though the underlying data 
-structure is mutable. It demonstrates efficient hashing with 
+This project implements a Set using a Hash Map with open
+addressing strategy and supports immutable-style operations
+(functional programming style) even though the underlying data
+structure is mutable. It demonstrates efficient hashing with
 collision resolution and functional set operations.
 
 ## Project structure
@@ -21,7 +21,7 @@ collision resolution and functional set operations.
 - **Core functionality:**
 
   - `cons(element, set)`: Return a new set with the element
-  added (does not mutate original).
+    added (does not mutate original).
   - `remove(key)`: Returns a new set with the element removed.
   - `member(element, set)`: Check if an element exists.
   - `length(set)`: Get the number of elements.
@@ -40,7 +40,6 @@ collision resolution and functional set operations.
     and return a new set.
   - `reduce(set, func, initial)`: Reduce the elements using a binary
     function and initial value.
-
 
 - **Other Utilities:**
 
@@ -75,5 +74,4 @@ collision resolution and functional set operations.
 - Immutability Principle: All external operations return new set
   instances, following a functional style.
 - Efficiency: Dynamic resizing maintains performance with
-  logarithmic growth. 
-
+  logarithmic growth.
