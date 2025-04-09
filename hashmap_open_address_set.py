@@ -6,7 +6,8 @@ from typing import (
     List,
     Tuple,
     TypeVar,
-    Generic
+    Generic,
+    cast
 )
 
 T = TypeVar('T')
@@ -33,11 +34,10 @@ class HashMapOpenAddressSet(Generic[T]):
         if not isinstance(other, HashMapOpenAddressSet):
             return False
         return set(e for e in self.array if e is not self.EMPTY_SLOT) == set(
-            e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
+            e for e in other.array if e is not other.EMPTY_SLOT)
 
     def __iter__(self) -> Iterator[T]:
-        # 明确指定生成器返回的类型是 T
-        return (e for e in self.array if e is not self.EMPTY_SLOT)
+        return (cast(T, e) for e in self.array if e is not self.EMPTY_SLOT)
 
     def __hash__(self) -> int:
         return hash(
@@ -122,9 +122,8 @@ def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
 
 
 def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
-    # 明确指定列表推导式返回的类型为 List[T]
-    # type: ignore
-    return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
+    return [cast(T, elem)
+            for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
 
 
 def intersection(
@@ -157,7 +156,7 @@ def find(set_obj: HashMapOpenAddressSet[T],
     for elem in set_obj:
         if predicate(elem):
             return elem
-    return None  # 返回 Optional[T]
+    return None
 
 
 def filter(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[
@@ -177,8 +176,9 @@ def map_set(set_obj: HashMapOpenAddressSet[T], func: Callable[[
     return result
 
 
+# type: ignore
 def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[
-           U, T], U], initial: Optional[U] = None) -> U:
+           U, T], U], initial: U = None) -> U:
     it = iter(set_obj)
     if initial is None:
         try:
@@ -186,9 +186,9 @@ def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[
         except StopIteration:
             raise TypeError("reduce() of empty sequence with no initial value")
 
-    acc: U = initial  # 确保 acc 类型是 U
+    acc: U = initial  # type: ignore
     for elem in it:
-        acc = func(acc, elem)  # type: ignore
+        acc = func(acc, elem)
     return acc
 
 
