@@ -12,7 +12,6 @@ from hashmap_open_address_set import (
     reduce,
     empty,
 )
-from functools import reduce
 
 
 def test_api():
@@ -137,22 +136,23 @@ def test_api():
     print("empty_set function tests passed")
 
     print("\nRunning resize tests...")
-
     s = empty()
-    assert s.size == 8  # 初始容量为 8
+    assert s.size == 8
 
+    # 插入 0 到 7
     for i in range(8):
         s = cons(i, s)
     assert length(s) == 8
     assert s.size == 8
 
-    s = cons(9, s)
+    # 插入 8，触发扩容
+    s = cons(8, s)
     assert length(s) == 9
     assert s.size == 16
 
+    # 检查所有元素
     for i in range(9):
         assert member(i, s), f"Element {i} missing after resize"
-
     print("Resize tests passed!")
 
     # =============================================
