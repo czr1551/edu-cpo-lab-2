@@ -33,10 +33,10 @@ class HashMapOpenAddressSet(Generic[T]):
         if not isinstance(other, HashMapOpenAddressSet):
             return False
         return set(e for e in self.array if e is not self.EMPTY_SLOT) == set(
-            e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
+            e for e in other.array if e is not self.EMPTY_SLOT)
 
     def __iter__(self) -> Iterator[T]:
-        return (e for e in self.array if e is not self.EMPTY_SLOT)  # type: ignore
+        return (e for e in self.array if e is not self.EMPTY_SLOT)
 
     def __hash__(self) -> int:
         return hash(
