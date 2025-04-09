@@ -135,7 +135,51 @@ def test_api():
     assert str(empty()) == "{}"
     print("empty_set function tests passed")
 
-    print("All tests passed successfully!")
+    # =============================================
+    # 新增的半幺群(Monoid)测试
+    # =============================================
+    print("\nRunning Monoid tests...")
+
+    # 单位元测试
+    # empty() 是单位元
+    test_set = from_list([1, 2, 3])
+    assert concat(empty(), test_set) == test_set  # 左单位元
+    assert concat(test_set, empty()) == test_set  # 右单位元
+    print("Identity element tests passed")
+
+    # 结合律测试
+    set_a = from_list([1, 2])
+    set_b = from_list([3, 4])
+    set_c = from_list([5, 6])
+
+    # (a · b) · c == a · (b · c)
+    left_temp = concat(set_a, set_b)
+    left_associative = concat(left_temp, set_c)
+
+    right_temp = concat(set_b, set_c)
+    right_associative = concat(set_a, right_temp)
+
+    assert left_associative == right_associative
+    print("Associativity test passed")
+
+    # 复杂结合律测试
+    set_x = from_list([None, "a", 1])
+    set_y = from_list([2, 3.14, True])
+    set_z = from_list([False, "b", 42])
+
+    temp1 = concat(set_x, set_y)
+    temp2 = concat(set_y, set_z)
+
+    left_complex = concat(temp1, set_z)
+    right_complex = concat(set_x, temp2)
+
+    assert left_complex == right_complex
+    print("Complex associativity test passed")
+
+    print("All Monoid tests passed!")
+    # =============================================
+
+    print("\nAll tests passed successfully!")
 
 
 def main():
