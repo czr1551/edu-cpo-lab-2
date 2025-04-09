@@ -33,10 +33,10 @@ class HashMapOpenAddressSet(Generic[T]):
         if not isinstance(other, HashMapOpenAddressSet):
             return False
         return set(e for e in self.array if e is not self.EMPTY_SLOT) == set(
-            e for e in other.array if e is not self.EMPTY_SLOT)
+            e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
 
     def __iter__(self) -> Iterator[T]:
-        # 确保返回类型是 T，而不是 object
+        # 明确指定生成器返回的类型是 T
         return (e for e in self.array if e is not self.EMPTY_SLOT)
 
     def __hash__(self) -> int:
@@ -122,7 +122,8 @@ def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
 
 
 def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
-    # 确保列表推导式返回 List[T] 类型
+    # 明确指定列表推导式返回的类型为 List[T]
+    # type: ignore
     return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
 
 
