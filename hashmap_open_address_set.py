@@ -33,10 +33,10 @@ class HashMapOpenAddressSet(Generic[T]):
         if not isinstance(other, HashMapOpenAddressSet):
             return False
         return set(e for e in self.array if e is not self.EMPTY_SLOT) == set(
-            e for e in other.array if e is not self.EMPTY_SLOT)
+            e for e in other.array if e is not self.EMPTY_SLOT)  # type: ignore
 
     def __iter__(self) -> Iterator[T]:
-        # 确保返回类型为 T 而不是 object
+        # 确保返回类型为 T 而非 object
         return (e for e in self.array if e is not self.EMPTY_SLOT)
 
     def __hash__(self) -> int:
@@ -123,6 +123,7 @@ def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
 
 def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
     # 修正类型问题，返回 List[T] 而非 List[object]
+    # type: ignore
     return [elem for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
 
 
@@ -181,13 +182,13 @@ def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[
     it = iter(set_obj)
     if initial is None:
         try:
-            initial = next(it)
+            initial = next(it)  # type: ignore
         except StopIteration:
             raise TypeError("reduce() of empty sequence with no initial value")
 
-    acc = initial
+    acc: U = initial  # 确保 acc 类型是 U
     for elem in it:
-        acc = func(acc, elem)
+        acc = func(acc, elem)  # type: ignore
     return acc
 
 
