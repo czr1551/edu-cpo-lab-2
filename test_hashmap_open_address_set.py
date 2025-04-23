@@ -106,7 +106,6 @@ class TestHashMapOpenAddressSet(unittest.TestCase):
             set_a, concat(set_b, set_c)
         )
 
-
         self.assertEqual(left_result, right_result)
 
 
