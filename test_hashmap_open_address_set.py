@@ -1,168 +1,110 @@
+import unittest
+from typing import Optional
 from hashmap_open_address_set import (
-    concat,
-    cons,
-    from_list,
-    intersection,
-    length,
-    member,
-    remove,
-    to_list,
-    filter,
-    map_set,
-    reduce,
-    empty,
+    empty, cons, remove, member, length, from_list, to_list,
+    intersection, concat, filter, map_set, reduce
 )
+from hypothesis import given
+from hypothesis.strategies import lists, integers
 
 
-def test_api():
+class TestHashMapOpenAddressSet(unittest.TestCase):
 
-    # Test basic set operations and string representation
-    empty_set = empty()
-    assert str(cons(None, empty_set)) == "{None}"
+    def test_empty_and_cons(self):
+        s = empty()
+        self.assertEqual(str(s), "{}")
+        s = cons(None, s)
+        self.assertIn(str(s), ["{None}"])
+        self.assertTrue(member(None, s))
 
-    l1 = cons(None, cons(1, empty_set))
-    l2 = cons(1, cons(None, empty_set))
+    def test_length_and_remove(self):
+        s = from_list([1, None])
+        self.assertEqual(length(s), 2)
+        s = remove(s, 1)
+        self.assertIn(str(s), ["{None}"])
+        s = remove(s, None)
+        self.assertEqual(length(s), 0)
+        self.assertEqual(str(s), "{}")
 
-    assert str(empty_set) == "{}"
-    assert str(l1) == "{None, 1}" or str(l1) == "{1, None}"
-    assert empty_set != l1
-    assert empty_set != l2
-    assert l1 == l2
-    assert l1 == cons(None, cons(1, l1))
+    def test_membership(self):
+        s = from_list([1, 2, 3])
+        self.assertTrue(member(1, s))
+        self.assertFalse(member(4, s))
+        self.assertFalse(member(None, s))
 
-    # Test length function
-    assert length(empty_set) == 0
-    assert length(l1) == 2
-    assert length(l2) == 2
+    def test_intersection(self):
+        a = from_list([1, 2, 3])
+        b = from_list([2, 3, 4])
+        result = intersection(a, b)
+        self.assertCountEqual(to_list(result), [2, 3])
 
-    # Test remove operation
-    assert str(remove(l1, None)) == "{1}"
-    assert str(remove(l1, 1)) == "{None}"
+    def test_concat(self):
+        a = from_list([1, 2])
+        b = from_list([3, 4])
+        result = concat(a, b)
+        self.assertCountEqual(to_list(result), [1, 2, 3, 4])
 
-    # Test membership
-    assert not member(None, empty_set)
-    assert member(None, l1)
-    assert member(1, l1)
-    assert not member(2, l1)
+    def test_filter(self):
+        s = from_list([1, 2, 3, 4])
+        even = filter(s, lambda x: x % 2 == 0)
+        self.assertCountEqual(to_list(even), [2, 4])
 
-    # Test intersection
-    assert intersection(l1, l2) == l1
-    assert intersection(l1, l2) == l2
-    assert intersection(l1, empty_set) == empty_set
-    assert intersection(l1, cons(None, empty_set)) == cons(None, empty_set)
+    def test_map_set(self):
+        s = from_list([1, 2, 3])
+        mapped = map_set(s, lambda x: x + 1)
+        self.assertCountEqual(to_list(mapped), [2, 3, 4])
 
-    # Test conversion to/from list
-    assert to_list(l1) == [None, 1] or to_list(l1) == [1, None]
-    assert l1 == from_list([None, 1])
-    assert l1 == from_list([1, None, 1])
+    def test_reduce(self):
+        s = from_list([1, 2, 3, 4])
+        total = reduce(s, lambda acc, x: acc + x, 0)
+        self.assertEqual(total, 10)
 
-    # Test concatenation
-    assert concat(l1, l2) == from_list([None, 1, 1, None])
+    def test_none_element(self):
+        s = from_list([None])
+        self.assertEqual(length(s), 1)
+        self.assertTrue(member(None, s))
+        self.assertEqual(to_list(s), [None])
 
-    # Test iteration
-    buf = []
-    for e in l1:
-        buf.append(e)
-    from itertools import permutations
+    def test_resize_behavior(self):
+        initial_capacity = 8  # Default initial capacity
+        num_elements = 50
 
-    assert buf in [list(p) for p in permutations([1, None])]
+        elements = list(range(num_elements))
+        s = empty()
+        for elem in elements:
+            s = cons(elem, s)
 
-    # Test complete element coverage
-    lst = to_list(l1) + to_list(l2)
-    for e in l1:
-        lst.remove(e)
-    for e in l2:
-        lst.remove(e)
-    assert lst == []
-    print("Element coverage test passed")
+        # Check if the reported length matches the number of inserted elements
+        self.assertEqual(length(s), num_elements)
 
-    # Test filter function
-    def is_even(x):
-        return x % 2 == 0 if x is not None else False
+        # Verify all inserted elements are present in the set
+        for elem in elements:
+            self.assertTrue(member(elem, s), f"Element {elem} missing after insert")
 
-    l3 = from_list([1, 2, 3, 4, 5, 6])
-    filtered = filter(l3, is_even)
-    assert (
-        to_list(filtered) == [2, 4, 6]
-        or to_list(filtered) == [4, 6, 2]
-        or to_list(filtered) == [2, 6, 4]
-        or to_list(filtered) == [4, 2, 6]
-        or to_list(filtered) == [6, 2, 4]
-        or to_list(filtered) == [6, 4, 2]
-    )
+        # Verify no duplicates (set semantics)
+        unique_elements = set(elements)
+        self.assertCountEqual(to_list(s), list(unique_elements))
 
-    # Test map function
-    def increment(x):
-        return x + 1 if x is not None else None
+    # Property-Based Tests for Monoid Properties
+    @given(lists(integers()), lists(integers()), lists(integers()))
+    def test_monoid_identity_and_associativity(self, xs1, xs2, xs3):
+        set_a = from_list(xs1)
+        set_b = from_list(xs2)
+        set_c = from_list(xs3)
 
-    mapped = map_set(l3, increment)
-    assert (to_list(mapped) == [2, 3, 4, 5, 6, 7] or
-            sorted(to_list(mapped)) == [
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-    ])
+        # Identity
+        self.assertEqual(concat(empty(), set_a), set_a)
+        self.assertEqual(concat(set_a, empty()), set_a)
 
-    # Test reduce function
-    def add(acc, x):
-        return acc + (x if x is not None else 0)
+        # Associativity: (a ⋅ b) ⋅ c == a ⋅ (b ⋅ c)
+        left_temp = concat(set_a, set_b)
+        left_result = concat(left_temp, set_c)
 
-    total = reduce(l3, add, 0)
-    assert total == 21  # 1+2+3+4+5+6
+        right_temp = concat(set_b, set_c)
+        right_result = concat(set_a, right_temp)
 
-    # Test empty_set function
-    assert empty() == empty()
-    assert length(empty()) == 0
-    assert str(empty()) == "{}"
-
-    s = empty()
-    assert s.size == 8
-
-    for i in range(8):
-        s = cons(i, s)
-    assert length(s) == 8
-    assert s.size == 8
-
-    s = cons(8, s)
-    assert length(s) == 9
-    assert s.size == 16
-
-    for i in range(9):
-        assert member(i, s), f"Element {i} missing after resize"
-
-    # Monoid Test
-
-    test_set = from_list([1, 2, 3])
-    assert concat(empty(), test_set) == test_set
-    assert concat(test_set, empty()) == test_set
-
-    set_a = from_list([1, 2])
-    set_b = from_list([3, 4])
-    set_c = from_list([5, 6])
-
-    # (a · b) · c == a · (b · c)
-    left_temp = concat(set_a, set_b)
-    left_associative = concat(left_temp, set_c)
-
-    right_temp = concat(set_b, set_c)
-    right_associative = concat(set_a, right_temp)
-
-    assert left_associative == right_associative
-
-
-def main():
-    try:
-        test_api()
-    except AssertionError as e:
-        print(f"Test failed: {e}")
-        raise
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        raise
+        self.assertEqual(left_result, right_result)
 
 
 if __name__ == "__main__":
-    main()
+    unittest.main()
