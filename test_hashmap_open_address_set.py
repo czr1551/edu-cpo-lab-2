@@ -79,7 +79,7 @@ class TestHashMapOpenAddressSet(unittest.TestCase):
 
         # Verify all inserted elements are present in the set
         for elem in elements:
-            self.assertTrue(member(elem, s), f"Element {elem} missing after insert")
+            self.assertTrue(member(elem, s)
 
         # Verify no duplicates (set semantics)
         unique_elements = set(elements)
