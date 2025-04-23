@@ -33,7 +33,7 @@ class TestHashMapOpenAddressSet(unittest.TestCase):
         s: HashMapOpenAddressSet[int] = from_list([1, 2, 3])
         self.assertTrue(member(1, s))
         self.assertFalse(member(4, s))
-        self.assertFalse(member(None, s))  # type: ignore[arg-type]
+        self.assertFalse(member(None, s))
 
     def test_intersection(self) -> None:
         a: HashMapOpenAddressSet[int] = from_list([1, 2, 3])
