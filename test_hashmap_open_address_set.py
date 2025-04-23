@@ -99,8 +99,13 @@ class TestHashMapOpenAddressSet(unittest.TestCase):
         self.assertEqual(concat(empty(), set_a), set_a)
         self.assertEqual(concat(set_a, empty()), set_a)
 
-        left_result: HashMapOpenAddressSet[int] = concat(concat(set_a, set_b), set_c)
-        right_result: HashMapOpenAddressSet[int] = concat(set_a, concat(set_b, set_c))
+        left_result: HashMapOpenAddressSet[int] = concat(
+            concat(set_a, set_b), set_c
+        )
+        right_result: HashMapOpenAddressSet[int] = concat(
+            set_a, concat(set_b, set_c)
+        )
+
 
         self.assertEqual(left_result, right_result)
 
