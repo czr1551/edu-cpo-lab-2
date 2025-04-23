@@ -1,110 +1,196 @@
-import unittest
-from typing import Optional
-from hashmap_open_address_set import (
-    empty, cons, remove, member, length, from_list, to_list,
-    intersection, concat, filter, map_set, reduce
+from typing import (
+    Optional,
+    Callable,
+    Iterable,
+    Iterator,
+    List,
+    Tuple,
+    TypeVar,
+    Generic,
+    cast
 )
-from hypothesis import given
-from hypothesis.strategies import lists, integers
+
+T = TypeVar('T')
+U = TypeVar('U')
 
 
-class TestHashMapOpenAddressSet(unittest.TestCase):
+class HashMapOpenAddressSet(Generic[T]):
+    EMPTY_SLOT = object()
 
-    def test_empty_and_cons(self):
-        s = empty()
-        self.assertEqual(str(s), "{}")
-        s = cons(None, s)
-        self.assertIn(str(s), ["{None}"])
-        self.assertTrue(member(None, s))
+    def __init__(self,
+                 size: int = 8,
+                 array: Optional[Iterable[object]] = None,
+                 length: int = 0):
+        self.size: int = size
+        self.array: Tuple[object, ...] = tuple(
+            array if array is not None else [self.EMPTY_SLOT] * size)
+        self.length: int = length
 
-    def test_length_and_remove(self):
-        s = from_list([1, None])
-        self.assertEqual(length(s), 2)
-        s = remove(s, 1)
-        self.assertIn(str(s), ["{None}"])
-        s = remove(s, None)
-        self.assertEqual(length(s), 0)
-        self.assertEqual(str(s), "{}")
+    def __str__(self) -> str:
+        elements = [str(e) for e in self.array if e is not self.EMPTY_SLOT]
+        return "{" + ", ".join(sorted(elements, key=str)) + "}"
 
-    def test_membership(self):
-        s = from_list([1, 2, 3])
-        self.assertTrue(member(1, s))
-        self.assertFalse(member(4, s))
-        self.assertFalse(member(None, s))
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, HashMapOpenAddressSet):
+            return False
+        return set(e for e in self.array if e is not self.EMPTY_SLOT) == set(
+            e for e in other.array if e is not other.EMPTY_SLOT)
 
-    def test_intersection(self):
-        a = from_list([1, 2, 3])
-        b = from_list([2, 3, 4])
-        result = intersection(a, b)
-        self.assertCountEqual(to_list(result), [2, 3])
+    def __iter__(self) -> Iterator[T]:
+        return (cast(T, e) for e in self.array if e is not self.EMPTY_SLOT)
 
-    def test_concat(self):
-        a = from_list([1, 2])
-        b = from_list([3, 4])
-        result = concat(a, b)
-        self.assertCountEqual(to_list(result), [1, 2, 3, 4])
-
-    def test_filter(self):
-        s = from_list([1, 2, 3, 4])
-        even = filter(s, lambda x: x % 2 == 0)
-        self.assertCountEqual(to_list(even), [2, 4])
-
-    def test_map_set(self):
-        s = from_list([1, 2, 3])
-        mapped = map_set(s, lambda x: x + 1)
-        self.assertCountEqual(to_list(mapped), [2, 3, 4])
-
-    def test_reduce(self):
-        s = from_list([1, 2, 3, 4])
-        total = reduce(s, lambda acc, x: acc + x, 0)
-        self.assertEqual(total, 10)
-
-    def test_none_element(self):
-        s = from_list([None])
-        self.assertEqual(length(s), 1)
-        self.assertTrue(member(None, s))
-        self.assertEqual(to_list(s), [None])
-
-    def test_resize_behavior(self):
-        initial_capacity = 8  # Default initial capacity
-        num_elements = 50
-
-        elements = list(range(num_elements))
-        s = empty()
-        for elem in elements:
-            s = cons(elem, s)
-
-        # Check if the reported length matches the number of inserted elements
-        self.assertEqual(length(s), num_elements)
-
-        # Verify all inserted elements are present in the set
-        for elem in elements:
-            self.assertTrue(member(elem, s), f"Element {elem} missing after insert")
-
-        # Verify no duplicates (set semantics)
-        unique_elements = set(elements)
-        self.assertCountEqual(to_list(s), list(unique_elements))
-
-    # Property-Based Tests for Monoid Properties
-    @given(lists(integers()), lists(integers()), lists(integers()))
-    def test_monoid_identity_and_associativity(self, xs1, xs2, xs3):
-        set_a = from_list(xs1)
-        set_b = from_list(xs2)
-        set_c = from_list(xs3)
-
-        # Identity
-        self.assertEqual(concat(empty(), set_a), set_a)
-        self.assertEqual(concat(set_a, empty()), set_a)
-
-        # Associativity: (a ⋅ b) ⋅ c == a ⋅ (b ⋅ c)
-        left_temp = concat(set_a, set_b)
-        left_result = concat(left_temp, set_c)
-
-        right_temp = concat(set_b, set_c)
-        right_result = concat(set_a, right_temp)
-
-        self.assertEqual(left_result, right_result)
+    def __hash__(self) -> int:
+        return hash(
+            frozenset(
+                e for e in self.array if e is not self.EMPTY_SLOT))
 
 
-if __name__ == "__main__":
-    unittest.main()
+def empty() -> HashMapOpenAddressSet[T]:
+    return HashMapOpenAddressSet()
+
+
+def cons(
+        element: T,
+        set_obj: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+    if member(element, set_obj):
+        return set_obj
+
+    element_hash = hash(element)
+    new_array = list(set_obj.array)
+    inserted = False
+
+    for i in range(set_obj.size):
+        index = (element_hash + i) % set_obj.size
+        if new_array[index] is set_obj.EMPTY_SLOT:
+            new_array[index] = element
+            inserted = True
+            break
+
+    if inserted:
+        return HashMapOpenAddressSet(
+            size=set_obj.size,
+            array=new_array,
+            length=set_obj.length + 1
+        )
+
+    new_size = set_obj.size * 2
+    new_set = HashMapOpenAddressSet[T](size=new_size)
+    for elem in set_obj:
+        new_set = cons(elem, new_set)
+    return cons(element, new_set)
+
+
+def member(element: T, set_obj: HashMapOpenAddressSet[T]) -> bool:
+    element_hash = hash(element)
+    for i in range(set_obj.size):
+        index = (element_hash + i) % set_obj.size
+        if set_obj.array[index] is set_obj.EMPTY_SLOT:
+            return False
+        if set_obj.array[index] == element:
+            return True
+    return False
+
+
+def remove(
+        set_obj: HashMapOpenAddressSet[T],
+        element: T) -> HashMapOpenAddressSet[T]:
+    if not member(element, set_obj):
+        return set_obj
+
+    new_array = list(set_obj.array)
+    for i in range(set_obj.size):
+        index = (hash(element) + i) % set_obj.size
+        if new_array[index] == element:
+            new_array[index] = set_obj.EMPTY_SLOT
+            return HashMapOpenAddressSet(
+                size=set_obj.size,
+                array=new_array,
+                length=set_obj.length - 1
+            )
+    return set_obj
+
+
+def length(set_obj: HashMapOpenAddressSet[T]) -> int:
+    return set_obj.length
+
+
+def from_list(lst: Iterable[T]) -> HashMapOpenAddressSet[T]:
+    s: HashMapOpenAddressSet[T] = empty()
+    for elem in lst:
+        s = cons(elem, s)
+    return s
+
+
+def to_list(set_obj: HashMapOpenAddressSet[T]) -> List[T]:
+    return [cast(T, elem)
+            for elem in set_obj.array if elem is not set_obj.EMPTY_SLOT]
+
+
+def intersection(
+        set1: HashMapOpenAddressSet[T],
+        set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+    smaller, larger = (set1, set2) if length(
+        set1) < length(set2) else (set2, set1)
+    result: HashMapOpenAddressSet[T] = empty()
+    for elem in smaller:
+        if member(elem, larger):
+            result = cons(elem, result)
+    return result
+
+
+def concat(
+        set1: HashMapOpenAddressSet[T],
+        set2: HashMapOpenAddressSet[T]) -> HashMapOpenAddressSet[T]:
+    smaller, larger = (set1, set2) if length(
+        set1) < length(set2) else (set2, set1)
+    result: HashMapOpenAddressSet[T] = larger
+    for elem in smaller:
+        if not member(elem, result):
+            result = cons(elem, result)
+    return result
+
+
+def find(set_obj: HashMapOpenAddressSet[T],
+         predicate: Callable[[T],
+                             bool]) -> Optional[T]:
+    for elem in set_obj:
+        if predicate(elem):
+            return elem
+    return None
+
+
+def filter(set_obj: HashMapOpenAddressSet[T], predicate: Callable[[
+           T], bool]) -> HashMapOpenAddressSet[T]:
+    result: HashMapOpenAddressSet[T] = empty()
+    for elem in set_obj:
+        if predicate(elem):
+            result = cons(elem, result)
+    return result
+
+
+def map_set(set_obj: HashMapOpenAddressSet[T], func: Callable[[
+            T], U]) -> HashMapOpenAddressSet[U]:
+    result: HashMapOpenAddressSet[U] = empty()
+    for elem in set_obj:
+        result = cons(func(elem), result)
+    return result
+
+
+# type: ignore
+def reduce(set_obj: HashMapOpenAddressSet[T], func: Callable[[
+           U, T], U], initial: U = None) -> U:
+    it = iter(set_obj)
+    if initial is None:
+        try:
+            initial = next(it)  # type: ignore
+        except StopIteration:
+            raise TypeError("reduce() of empty sequence with no initial value")
+
+    acc: U = initial  # type: ignore
+    for elem in it:
+        acc = func(acc, elem)
+    return acc
+
+
+def iterator(set_obj: HashMapOpenAddressSet[T]) -> Iterator[T]:
+    return iter(set_obj)
