@@ -1,5 +1,4 @@
-import unittest
-from typing import cast
+import unittest, cast
 from typing import Optional, List
 
 from hashmap_open_address_set import (
