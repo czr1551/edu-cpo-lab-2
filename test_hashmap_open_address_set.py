@@ -152,8 +152,6 @@ def test_api():
 
     assert left_associative == right_associative
 
-
-
 def main():
     try:
         test_api()
