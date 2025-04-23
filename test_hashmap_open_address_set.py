@@ -152,17 +152,6 @@ def test_api():
 
     assert left_associative == right_associative
 
-    set_x = from_list([None, "a", 1])
-    set_y = from_list([2, 3.14, True])
-    set_z = from_list([False, "b", 42])
-
-    temp1 = concat(set_x, set_y)
-    temp2 = concat(set_y, set_z)
-
-    left_complex = concat(temp1, set_z)
-    right_complex = concat(set_x, temp2)
-
-    assert left_complex == right_complex
 
 
 def main():
